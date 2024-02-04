@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Red-Black Tree 구현
 
 Balanced search tree로 많이 쓰이는 Red-black tree (이하 RB tree)를 C 언어로 구현하는 과제입니다.
@@ -42,3 +43,6 @@ Balanced search tree로 많이 쓰이는 Red-black tree (이하 RB tree)를 C �
 ([영어](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree))
 - CLRS book (Introduction to Algorithms) 13장 레드 블랙 트리 - Sentinel node를 사용한 구현
 - [Wikipedia:균형 이진 트리의 구현 방법들](https://en.wikipedia.org/wiki/Self-balancing_binary_search_tree#Implementations)
+=======
+# KraftonJungle_4Week
+>>>>>>> 6300710c422c2fadbd9fb29db64b797ef6acd979
