@@ -47,71 +47,128 @@ void RightRotate(rbtree *tree, node_t *x)
 
 void RbInsertFixed(rbtree *tree, node_t *childNode)
 {
-  node_t *grandNode = childNode->parent->parent;            // 할아버지 노드를 선언한다.
-  node_t *parentNode = childNode->parent;                   // 부모 노드를 선언한다.
-
-  if(childNode == tree->root)                               // 만약, 자식 노드가 root노드이면, 색만 바꿔준 후 return한다.
+  if(childNode == tree->root)                                             // red노드 삽입 후 #2번 속성 위반한 경우
   {
     childNode->color = RBTREE_BLACK;
     return;
   }
 
-  // 부모의 형제 노드를 선언한다.
-  node_t *siblingNode = grandNode->left == parentNode ? grandNode->right : grandNode->left;   
-
-  while(parentNode->color == RBTREE_RED)                                        // 부모의 node color가 검은색이 될 때까지 반복해준다.
+  while(childNode->parent->color == RBTREE_RED)                           // 부모 노드가 검은색이 될 때까지 반복한다.
   {
-    if(siblingNode->color == RBTREE_RED && grandNode->color == RBTREE_BLACK)    // case 1번의 경우
+    if(childNode->parent == childNode->parent->parent->left)              // 회전 방향 설정을 위해 부모의 위치를 파악한다.
     {
-      parentNode->color = RBTREE_BLACK;
-      siblingNode->color = RBTREE_BLACK;
-      grandNode->color = RBTREE_RED;
-      RbInsertFixed(tree, grandNode);
-    }
-
-    else if(siblingNode->color != RBTREE_RED)                                   // 부모의 색과 형제의 색이 다르면, case 2, 3을 판별한다.
-    {
-      if(grandNode->left == parentNode)                                         // 부모의 위치가 어디인지 정하여 rotation 방향을 정한다.
+      node_t *uncleNode = childNode->parent->parent->right;               // 삼촌 노드를 선언한다.
+      if(uncleNode->color == RBTREE_RED)                                  // case 1
       {
-        if(parentNode->right == childNode)                                      // case 2
-        {
-          LeftRotate(tree, parentNode);
-          parentNode->color = RBTREE_BLACK;
-          grandNode->color = RBTREE_RED;
-          RightRotate(tree, grandNode);
-          RbInsertFixed(tree, grandNode);
-        }
-        else                                                                    // case 3
-        {
-          parentNode->color = RBTREE_BLACK;
-          grandNode->color = RBTREE_RED;
-          RightRotate(tree, grandNode);
-          RbInsertFixed(tree, grandNode);
-        }
+        childNode->parent->color = RBTREE_BLACK;
+        uncleNode->color = RBTREE_BLACK;
+        childNode->parent->parent->color = RBTREE_RED;
+        childNode = childNode->parent->parent;
       }
-
       else
       {
-        if(parentNode->left == childNode)                                       // case 2
+        if(childNode == childNode->parent->right)                         // case 2
         {
-          RightRotate(tree, parentNode);
-          parentNode->color = RBTREE_BLACK;
-          grandNode->color = RBTREE_RED;
-          LeftRotate(tree, grandNode);
-          RbInsertFixed(tree, grandNode);
+          childNode = childNode->parent;
+          LeftRotate(tree, childNode);
         }
-        else                                                                    // case 3
-        {
-          parentNode->color = RBTREE_BLACK;
-          grandNode->color = RBTREE_RED;
-          RightRotate(tree, grandNode);
-          RbInsertFixed(tree, grandNode);
-        }
+        childNode->parent->color = RBTREE_BLACK;                          // case 3
+        childNode->parent->parent->color = RBTREE_RED;
+        RightRotate(tree, childNode->parent->parent);
       }
     }
-  }
 
-  tree->root->color = RBTREE_BLACK;
+    else                                                                  // 부모의 위치가 반대일 때
+    {
+      node_t *uncleNode = childNode->parent->parent->left;
+      if(uncleNode->color == RBTREE_RED)                                  // case 1
+      {
+        childNode->parent->color = RBTREE_BLACK;
+        uncleNode->color = RBTREE_BLACK;
+        childNode->parent->parent->color = RBTREE_RED;
+        childNode = childNode->parent->parent;
+      }
+      else
+      {
+        if(childNode == childNode->parent->left)                          // case 2
+        {
+          childNode = childNode->parent;
+          RightRotate(tree, childNode);
+        }
+        childNode->parent->color = RBTREE_BLACK;                          // case 3
+        childNode->parent->parent->color = RBTREE_RED;
+        LeftRotate(tree, childNode->parent->parent);
+      }
+    }
+
+    tree->root->color = RBTREE_BLACK;                                     // root color를 black으로 변경해준다.
+  }
+  
+  // node_t *grandNode = childNode->parent->parent;            // 할아버지 노드를 선언한다.
+  // node_t *parentNode = childNode->parent;                   // 부모 노드를 선언한다.
+
+  // if(childNode == tree->root)                               // 만약, 자식 노드가 root노드이면, 색만 바꿔준 후 return한다.
+  // {
+  //   childNode->color = RBTREE_BLACK;
+  //   return;
+  // }
+
+  // // 부모의 형제 노드를 선언한다.
+  // node_t *siblingNode = grandNode->left == parentNode ? grandNode->right : grandNode->left;   
+
+  // while(parentNode->color == RBTREE_RED)                                        // 부모의 node color가 검은색이 될 때까지 반복해준다.
+  // {
+  //   if(siblingNode->color == RBTREE_RED && grandNode->color == RBTREE_BLACK)    // case 1번의 경우
+  //   {
+  //     parentNode->color = RBTREE_BLACK;
+  //     siblingNode->color = RBTREE_BLACK;
+  //     grandNode->color = RBTREE_RED;
+  //     RbInsertFixed(tree, grandNode);
+  //   }
+
+  //   else if(siblingNode->color != RBTREE_RED)                                   // 부모의 색과 형제의 색이 다르면, case 2, 3을 판별한다.
+  //   {
+  //     if(grandNode->left == parentNode)                                         // 부모의 위치가 어디인지 정하여 rotation 방향을 정한다.
+  //     {
+  //       if(parentNode->right == childNode)                                      // case 2
+  //       {
+  //         LeftRotate(tree, parentNode);
+  //         parentNode->color = RBTREE_BLACK;
+  //         grandNode->color = RBTREE_RED;
+  //         RightRotate(tree, grandNode);
+  //         RbInsertFixed(tree, grandNode);
+  //       }
+  //       else                                                                    // case 3
+  //       {
+  //         parentNode->color = RBTREE_BLACK;
+  //         grandNode->color = RBTREE_RED;
+  //         RightRotate(tree, grandNode);
+  //         RbInsertFixed(tree, grandNode);
+  //       }
+  //     }
+
+  //     else
+  //     {
+  //       if(parentNode->left == childNode)                                       // case 2
+  //       {
+  //         RightRotate(tree, parentNode);
+  //         parentNode->color = RBTREE_BLACK;
+  //         grandNode->color = RBTREE_RED;
+  //         LeftRotate(tree, grandNode);
+  //         RbInsertFixed(tree, grandNode);
+  //       }
+  //       else                                                                    // case 3
+  //       {
+  //         parentNode->color = RBTREE_BLACK;
+  //         grandNode->color = RBTREE_RED;
+  //         RightRotate(tree, grandNode);
+  //         RbInsertFixed(tree, grandNode);
+  //       }
+  //     }
+  //   }
+  // }
+
+  // tree->root->color = RBTREE_BLACK;
 }
 
 rbtree *new_rbtree(void) {
@@ -166,12 +223,20 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
 
   RbInsertFixed(t, newNode);                                    // RB Tree 속성을 위반하였는지 검사한다.
 
-  return t->root;
+  return newNode;
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key) {
   // TODO: implement find
-  return t->root;
+  node_t *current = t->root;                                              // root부터 시작한다.
+  while (current != t->nil)                                               // current가 nil일 떄까지 반복하며
+  {
+    if (key == current->key)                                              // key를 찾는다.
+      return current;
+    else
+      current = (key < current->key) ? current->left : current->right;
+  }
+  return NULL; // 해당 key값을 가진 노드가 없을 경우 NULL 반환
 }
 
 node_t *rbtree_min(const rbtree *t) {
@@ -230,14 +295,16 @@ void RbDeleteFixed(rbtree *tree, node_t *doublyBlack)
       {
         sibling->color = RBTREE_RED;
         doublyBlack = doublyBlack->parent;
-        RbDeleteFixed(tree, doublyBlack);
       }
-      else if(sibling->right->color == RBTREE_BLACK)                                               
+      else                                         
       {
-          sibling->left->color = RBTREE_BLACK;                                                      // case 3
+        if(sibling->right->color == RBTREE_BLACK)                                                   // case 3
+        {
+          sibling->left->color = RBTREE_BLACK;                                                      
           sibling->color = RBTREE_RED;
           RightRotate(tree, sibling);
           sibling = doublyBlack->parent->right;
+        }
         sibling->color = doublyBlack->parent->color;                                                // case 4
         doublyBlack->parent->color = RBTREE_BLACK;
         LeftRotate(tree, doublyBlack->parent);
@@ -260,14 +327,16 @@ void RbDeleteFixed(rbtree *tree, node_t *doublyBlack)
       {
         sibling->color = RBTREE_RED;
         doublyBlack = doublyBlack->parent;
-        RbDeleteFixed(tree, doublyBlack);
       }
-      else if(sibling->left->color == RBTREE_BLACK)                                               
+      else                                             
       {
-          sibling->right->color = RBTREE_BLACK;                                                      // case 3
+        if(sibling->left->color == RBTREE_BLACK)                                                     // case 3
+        {
+          sibling->right->color = RBTREE_BLACK;                                                      
           sibling->color = RBTREE_RED;
           RightRotate(tree, sibling);
           sibling = doublyBlack->parent->left;
+        }
         sibling->color = doublyBlack->parent->color;                                                 // case 4
         doublyBlack->parent->color = RBTREE_BLACK;
         LeftRotate(tree, doublyBlack->parent);
@@ -317,7 +386,8 @@ int rbtree_erase(rbtree *t, node_t *p) {
 
   if(backupNodeOgColor == RBTREE_BLACK)                               // successor의 색이 black이였다면 extra black이 생기므로 속성 검사를 한다.
     RbDeleteFixed(t, tempNode);
-    
+
+  free(p);
   return 0;
 }
 
