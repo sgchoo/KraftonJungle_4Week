@@ -12,6 +12,10 @@ test:
 test: ## Test rbtree implementation
 	$(MAKE) -C test test
 	
+a:
+	$(MAKE) -C src
+	$(MAKE) -C test test
+
 clean:
 clean: ## Clear build environment
 	$(MAKE) -C src clean

@@ -182,8 +182,21 @@ rbtree *new_rbtree(void) {
   return p;
 }
 
+void InorderTraversal(rbtree *tree, node_t *root)
+{
+    if(root != tree->nil)
+    {
+        InorderTraversal(tree, root->left);
+        InorderTraversal(tree, root->right);
+        free(root);
+    }
+}
+
 void delete_rbtree(rbtree *t) {
   // TODO: reclaim the tree nodes's memory
+
+  InorderTraversal(t, t->root);
+
   // if(t->root)
   //   free(t->root);
   free(t->nil);
@@ -241,12 +254,22 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
 
 node_t *rbtree_min(const rbtree *t) {
   // TODO: implement find
-  return t->root;
+  node_t *tempNode = t->root;
+
+  while(tempNode->left != t->nil)
+    tempNode = tempNode->left;
+
+  return tempNode;
 }
 
 node_t *rbtree_max(const rbtree *t) {
   // TODO: implement find
-  return t->root;
+  node_t *tempNode = t->root;
+
+  while(tempNode->right != t->nil)
+    tempNode = tempNode->right;
+
+  return tempNode;
 }
 
 void RBTreeTransplant(rbtree *tree, node_t *deleteNode, node_t *childNode)
@@ -296,7 +319,7 @@ void RbDeleteFixed(rbtree *tree, node_t *doublyBlack)
         sibling->color = RBTREE_RED;
         doublyBlack = doublyBlack->parent;
       }
-      else                                         
+      else                               
       {
         if(sibling->right->color == RBTREE_BLACK)                                                   // case 3
         {
@@ -307,6 +330,7 @@ void RbDeleteFixed(rbtree *tree, node_t *doublyBlack)
         }
         sibling->color = doublyBlack->parent->color;                                                // case 4
         doublyBlack->parent->color = RBTREE_BLACK;
+        sibling->right->color = RBTREE_BLACK;
         LeftRotate(tree, doublyBlack->parent);
         doublyBlack = tree->root;
       }
@@ -319,7 +343,7 @@ void RbDeleteFixed(rbtree *tree, node_t *doublyBlack)
       {
         sibling->color = RBTREE_BLACK;
         doublyBlack->parent->color = RBTREE_RED;
-        LeftRotate(tree, doublyBlack->parent);
+        RightRotate(tree, doublyBlack->parent);
         sibling = doublyBlack->parent->left;
       }
 
@@ -334,16 +358,19 @@ void RbDeleteFixed(rbtree *tree, node_t *doublyBlack)
         {
           sibling->right->color = RBTREE_BLACK;                                                      
           sibling->color = RBTREE_RED;
-          RightRotate(tree, sibling);
+          LeftRotate(tree, sibling);
           sibling = doublyBlack->parent->left;
         }
         sibling->color = doublyBlack->parent->color;                                                 // case 4
         doublyBlack->parent->color = RBTREE_BLACK;
-        LeftRotate(tree, doublyBlack->parent);
+        sibling->left->color = RBTREE_BLACK;
+        RightRotate(tree, doublyBlack->parent);
         doublyBlack = tree->root;
       }
     }
   }
+
+  doublyBlack->color = RBTREE_BLACK;
 }
 
 int rbtree_erase(rbtree *t, node_t *p) {
@@ -354,15 +381,15 @@ int rbtree_erase(rbtree *t, node_t *p) {
 
   node_t *tempNode;
 
-  if(backupNode->left == t->nil)                                      // 만약 nil노드를 제외한 자식이 한명 이하인 경우
+  if(p->left == t->nil)                         // 만약 nil노드를 제외한 자식이 한명인 경우
   {
-    tempNode = backupNode->right;
-    RBTreeTransplant(t, backupNode, backupNode->right);
+    tempNode = p->right;
+    RBTreeTransplant(t, p, p->right);
   }
-  else if(backupNode->right == t->nil)                                // 만약 nil노드를 제외한 자식이 한명 이하인 경우
+  else if(p->right == t->nil)
   {
-    tempNode = backupNode->left;
-    RBTreeTransplant(t, tempNode, backupNode->left);
+    tempNode = p->left;
+    RBTreeTransplant(t, p, p->left);
   }
   else                                                                // 만약 자식 노드가 두개라면
   {
@@ -391,7 +418,20 @@ int rbtree_erase(rbtree *t, node_t *p) {
   return 0;
 }
 
+void Inorder(const rbtree *tree, node_t *root, key_t *arr, int *idx)
+{
+    if(root != tree->nil)
+    {
+        Inorder(tree, root->left, arr, idx);
+        arr[*idx] = root->key;
+        (*idx)++;
+        Inorder(tree, root->right, arr, idx);
+    }
+}
+
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
   // TODO: implement to_array
+  int index = 0;
+  Inorder(t, t->root, arr, &index);
   return 0;
 }
